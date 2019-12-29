@@ -21,7 +21,7 @@ The GBA plays 8-bit audio. Converting audio to 8-bit will produce artifacts for 
 
 You will first need to convert your audio files to raw, *signed* 8-bit 32768Hz stereo PCM audio. You can use the `batchconvert.sh` script for this (requires ffmpeg). It will convert MP3 files in the current directory to `.raw` files. You can modify the script to search for different extensions.
 
-Then run the `inline_alias.py` script in the same directory as your `.raw` files as well as `gbamp.gba`. This will produce a `.gba` ROM file for each audio file.
+Then run the `buildcarts.py` script in the same directory as your `.raw` files as well as `gbamp.gba`. This will produce a `.gba` ROM file for each audio file.
 
 ## Usage
 
