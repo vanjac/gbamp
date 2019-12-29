@@ -1,0 +1,5 @@
+    .ascii "end!"
+    .align 2
+    .word 0
+    .global audiodata
+audiodata:

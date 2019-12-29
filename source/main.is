@@ -1,0 +1,120 @@
+    .align  2
+    .global main
+    .code   16
+    .thumb_func
+    .type   main, %function
+main:
+    LDR     reg_ie:r0, =0x04000200
+    LDR     ie:r1, =((1<<12) | (1<<5))      @ keypad or timer 2
+    STRH    ie, [reg_ie]
+
+    MOV     enable:r1, #1
+    STRH    enable, [reg_ie, #0x08]         @ reg_ime
+
+    LDR     reg_keycnt:r0, =0x04000132
+    @ A-B-Start simultaneously
+    LDR     stopkeys:r1, =((1<<0) | (1<<1) | (1<<3) | (1<<14) | (1<<15))
+    STRH    stopkeys, [reg_keycnt]
+
+    LDR     reg_intr_handle:r0, =0x03007FFC
+    LDR     intr_handle_ptr:r1, =intrHandle
+    STR     intr_handle_ptr, [reg_intr_handle]
+
+    @ find audio data by signature
+    LDR     audioptr:r1, =audiodata
+    LDR     signature:r2, =0x4D414247   @ "GBAM"
+search:
+    ADD     audioptr, #4
+    LDR     test:r3, [audioptr]
+    CMP     test, signature
+    BNE     search
+
+    LDR     length:r3, [audioptr, #4]
+    ADD     audioptr, #8
+
+    @ LEFT channel: DMA 1, FIFO A
+    @ RIGHT channel: DMA 2, FIFO B
+
+    LDR     reg_base:r0, =0x04000080
+
+    @ left channel
+    STR     audioptr, [reg_base, #0x3C]   @ reg_dma1sad
+    ADD     audioptr, length
+    @ right channel
+    STR     audioptr, [reg_base, #0x48]   @ reg_dma2sad
+
+    LDR     sample:r2, =0
+    LDR     fifo_a:r1, =0x040000A0
+    STR     fifo_a, [reg_base, #0x40]       @ reg_dma1dad
+    STR     sample, [fifo_a]                @ write 4 samples manually
+    fifo_b:r1
+    ADD     fifo_b, #4
+    STR     fifo_b, [reg_base, #0x4C]       @ reg_dma2dad
+    STR     sample, [fifo_b]                @ write 4 samples manually
+
+    @ DMA enabled, start on FIFO, 32-bit, repeat
+    LDR     dma_control:r1, =0xB6000000
+    STR     dma_control, [reg_base, #0x44]  @ reg_dma1cnt
+    STR     dma_control, [reg_base, #0x50]  @ reg_dma2cnt
+
+    @ enable Sound A left Sound B right (timer 0) and reset FIFO
+    LDR     sound:r1, =0x9A0C0000
+    STR     sound, [reg_base, #0x00]        @ reg_soundcnt
+
+    @ master enable
+    LDR     sound:r1, =(1<<7)
+    STR     sound, [reg_base, #0x04]
+
+    LDR     reg_tim0cnt:r0, =0x04000100
+    @ 32,768Hz, enable
+    LDR     timer:r1, =0x0080FE00
+    STR     timer, [reg_tim0cnt]
+
+    @ 128 Hz (256 samples)
+    LDR     timer, =0x0084FF00
+    STR     timer, [reg_tim0cnt, #0x04]     @ timer 1
+
+    LSR     length, #8      @ units of 256 samples
+    @ Interrupt when song complete
+    LDR     timer, =0x00C50000
+    SUB     timer, length
+    STR     timer, [reg_tim0cnt, #0x08]     @ timer 2
+
+loop:
+    SWI     0x02   @ Halt
+    B       loop
+
+    .section    .iwram, "ax", %progbits
+    @.string "what"
+    .align  2
+    .code   32
+    .arm
+intrHandle:
+    LDR     reg_if:r0, =0x04000202
+    LDR     interrupts:r1, =((1<<12) | (1<<5))  @ keypad or timer 2
+    STRH    interrupts, [reg_if]
+
+@ taken from pocketnes
+doReset:
+	MOV     reg_base:r1,     #0x04000000
+	MOV     zero:r0, #0
+	STRH    zero, [reg_base, #0xBA]     @stop all DMA
+	STRH    zero, [reg_base, #0xC6]
+	STRH    zero, [reg_base, #0xD2]
+	STRH    zero, [reg_base, #0xDE]
+	ADD     reg_base, #0x200
+	STR     zero, [reg_base, #8]        @interrupts off
+
+    @ copy the visoly code to EWRAM and execute
+	LDR     cpuset_src:r0, =VISOLY_START
+	LDR     cpuset_dst:r1, =0x02000000
+	LDR     cpuset_len:r2, =VISOLY_END
+	SUB     cpuset_len, cpuset_src      @ subtract to get size
+    LSR     cpuset_len, #1              @ hword count
+    SWI     0x0B0000        @ CpuSet
+
+    MOV     lr, cpuset_dst
+    BX      lr
+
+    .unreq  all
+
