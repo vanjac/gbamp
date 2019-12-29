@@ -85,7 +85,6 @@ loop:
     B       loop
 
     .section    .iwram, "ax", %progbits
-    @.string "what"
     .align  2
     .code   32
     .arm
