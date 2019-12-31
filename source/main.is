@@ -113,9 +113,8 @@ search:
     @ MAIN LOOP
 
     @ useful memory locations
-    LDR     reg_keyinput:r4, =0x04000130
-    LDR     reg_tim2cnt_l:r5, =0x04000108
-    LDR     time_tile:r6, =0x06000084
+    LDR     reg_base:r4, =0x04000100
+    LDR     time_tile:r5, =0x06000084
 
 blank_screen:
     LDR     reg_dispcnt:r1, =0x04000000
@@ -129,20 +128,11 @@ blank_screen:
     STRH    display, [reg_dispcnt]
     LDR     vblank_irq:r0, =(1<<3)
     STRH    vblank_irq, [reg_dispcnt, #4]   @ reg_dispstat
+
+    LDR     prev_key:r6, =0x03FF    @ inverse, like the register
 display_loop:
-    LDRH    keyinput:r0, [reg_keyinput]
-    MVN     keyinput, keyinput
-
-    LDR     keytest:r1, =(1<<3)     @ Start
-    TST     keytest, keyinput
-    BEQ     blank_screen            @ if NOT Start held
-
-    LDR     keytest:r1, =(1<<1)     @ B
-    TST     keytest, keyinput
-    BNE     quit_thumb
-
-    @ get current time
-    LDRH    timer:r1, [reg_tim2cnt_l]    @ units of 256 samples
+    @ get current time, units of 256 samples
+    LDRH    timer:r1, [reg_base, #0x08]         @ reg_tim2cnt_l
     LDR     time:r0, =0xFFFF
     SUB     time, timer
     SUB     time, length, time
@@ -151,12 +141,38 @@ display_loop:
     BL      draw_time
 
     SWI     0x02    @ Halt (until vblank)
+
+    LDRH    keyinput:r0, [reg_base, #0x30]      @ reg_keyinput
+    MVN     keyinput, keyinput
+    MOV     key_press:r2, keyinput      @ key pressed this frame
+    AND     key_press, prev_key
+    MVN     prev_key, keyinput
+
+    MOV     keytest:r1, #(1<<3)     @ Start
+    TST     keytest, keyinput
+    BEQ     blank_screen            @ if NOT Start held
+
+    MOV     keytest, #(1<<0)        @ A
+    TST     keytest, key_press
+    BNE     toggle_pause
+
+    MOV     keytest, #(1<<1)        @ B
+    TST     keytest, key_press
+    BNE     quit_thumb
+
     B       display_loop
 
 quit_thumb:
     LDR     r0, =quit
     BX      r0
 
+toggle_pause:
+    LDR     reg_tim0cnt_h:r0, =0x04000102
+    LDRH    enabled:r1, [reg_tim0cnt_h]
+    MOV     mask:r2, #(1<<7)
+    EOR     enabled, mask
+    STRH    enabled, [reg_tim0cnt_h]
+    B       display_loop
 
 @ function
 draw_time:

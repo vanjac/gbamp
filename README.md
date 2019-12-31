@@ -1,13 +1,13 @@
 # gbamp
 
-Very simple music player for the Game Boy Advance. Currently supports only one file per ROM and lacks playback controls (only a stop button). It uses minimal battery power.
+Very simple music player for the Game Boy Advance. Currently supports only one file per ROM and is missing many features (see TODO). It uses minimal battery power.
 
 Audio is uncompressed PCM. Quality is fixed at 8-bit 32,768Hz stereo. This is (I think) the highest quality audio possible on the GBA, and it sounds better than you'd expect.
 
 ## TODO
 
-- Playback controls
-- Multiple tracks / bookmarks
+- Skip forward/back
+- Multiple tracks
 - Support other frequencies, mono audio
 - Album art
 
@@ -33,4 +33,6 @@ Launch the ROM and the audio should start playing immediately.
 
 The screen is normally blanked to save power. Hold Start to show the elapsed time.
 
-While holding Start, press B to stop the audio and exit to the main menu of your flash cart (Visoly, EZ-FLASH, or Super Card). This also happens automatically when the song is complete.
+While holding Start:
+- Press A to pause/play
+- Press B to stop and exit to the main menu of your flash cart (Visoly, EZ-FLASH, or Super Card). This also happens automatically when the song is complete.
