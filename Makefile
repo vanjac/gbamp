@@ -79,7 +79,7 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-ISFILES		:=  $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.is)))
+ISFILES		:=  $(sort $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.is))))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------

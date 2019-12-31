@@ -1,3 +1,4 @@
+    .section .rodata
     .ascii "end!"
     .align 2
     .word 0

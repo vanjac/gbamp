@@ -29,6 +29,8 @@ Then run the `buildcarts.py` script in the same directory as your `.raw` files a
 
 ## Usage
 
-Launch the ROM and the audio should start playing immediately. The screen is blanked to save power.
+Launch the ROM and the audio should start playing immediately.
 
-Press A+B+Start to stop the audio and exit. It will also exit automatically when the song is complete. If you run the ROM on a Visoly linker, EZ-FLASH cart, or Super Card, this will return to the main menu so you can select another ROM.
+The screen is normally blanked to save power. Hold Start to show the elapsed time.
+
+While holding Start, press B to stop the audio and exit to the main menu of your flash cart (Visoly, EZ-FLASH, or Super Card). This also happens automatically when the song is complete.
