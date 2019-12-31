@@ -6,6 +6,10 @@
 main:
     @ SETUP INTERRUPTS
 
+    LDR     reg_intr_handle:r0, =0x03007FFC
+    LDR     intr_handle_ptr:r1, =intrHandle
+    STR     intr_handle_ptr, [reg_intr_handle]
+
     LDR     reg_ie:r0, =0x04000200
     @ vblank, timer 2, keypad
     LDR     ie:r1, =((1<<0) | (1<<5) | (1<<12))
@@ -18,10 +22,6 @@ main:
     @ Start buttom interrupts
     LDR     stopkeys:r1, =((1<<3) | (1<<14))
     STRH    stopkeys, [reg_keycnt]
-
-    LDR     reg_intr_handle:r0, =0x03007FFC
-    LDR     intr_handle_ptr:r1, =intrHandle
-    STR     intr_handle_ptr, [reg_intr_handle]
 
     @ SETUP DISPLAY
 
@@ -106,7 +106,7 @@ search:
     LSR     time:r0, length, #7     @ seconds
     LDR     tilemap_ptr:r1, =0x06000092
     BL      draw_time
-    MOv     slash:r0, #43
+    MOV     slash:r0, #43
     SUB     tilemap_ptr, #4
     STRH    slash, [tilemap_ptr]
 
