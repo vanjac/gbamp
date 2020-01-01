@@ -156,9 +156,13 @@ display_loop:
     TST     keytest, key_press
     BNE     toggle_pause
 
-    MOV     keytest, #(1<<1)        @ B
+    LSL     keytest, #1             @ B
     TST     keytest, key_press
     BNE     quit_thumb
+
+    LSL     keytest, #8             @ L
+    TST     keytest, key_press
+    BNE     restart
 
     B       display_loop
 
@@ -173,6 +177,42 @@ toggle_pause:
     EOR     enabled, mask
     STRH    enabled, [reg_tim0cnt_h]
     B       display_loop
+
+restart:
+    LDR     dma_reg:r0, =0x040000C6     @ dma 1
+    BL      reset_dma
+    ADD     dma_reg, #0x0C              @ dma 2
+    BL      reset_dma
+    ADD     timer_reg:r0, #0x30         @ timer 0
+    BL      reset_timer
+    ADD     timer_reg:r0, #4            @ timer 1
+    BL      reset_timer
+    ADD     timer_reg:r0, #4            @ timer 1
+    BL      reset_timer
+    B       display_loop
+
+@ function
+reset_dma:
+    dma_reg:r0
+    MOV     enable_bit:r1, #1
+    LSL     enable_bit, #15
+    LDRH    dma_ctl:r2, [dma_reg]
+    BIC     dma_ctl, enable_bit
+    STRH    dma_ctl, [dma_reg]
+    ORR     dma_ctl, enable_bit
+    STRH    dma_ctl, [dma_reg]
+    BX      lr
+
+@ function
+reset_timer:
+    timer_reg:r0
+    MOV     enable_bit:r1, #(1<<7)
+    LDRH    timer_ctl:r2, [timer_reg]
+    BIC     timer_ctl, enable_bit
+    STRH    timer_ctl, [timer_reg]
+    ORR     timer_ctl, enable_bit
+    STRH    timer_ctl, [timer_reg]
+    BX      lr
 
 @ function
 draw_time:

@@ -36,3 +36,4 @@ The screen is normally blanked to save power. Hold Start to show the elapsed tim
 While holding Start:
 - Press A to pause/play
 - Press B to stop and exit to the main menu of your flash cart (Visoly, EZ-FLASH, or Super Card). This also happens automatically when the song is complete.
+- Press L to restart
