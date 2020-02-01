@@ -7,7 +7,7 @@ main:
     @ SETUP INTERRUPTS
 
     LDR     reg_intr_handle:r0, =0x03007FFC
-    LDR     intr_handle_ptr:r1, =intrHandle
+    LDR     intr_handle_ptr:r1, =intr_handle
     STR     intr_handle_ptr, [reg_intr_handle]
 
     LDR     reg_ie:r0, =0x04000200
@@ -252,7 +252,7 @@ draw_time:
     .align  2
     .code   32
     .arm
-intrHandle:
+intr_handle:
     LDR     reg_if:r0, =0x04000202
     LDRH    irq:r1, [reg_if]
     STRH    irq, [reg_if]       @ acknowledge interrupts
