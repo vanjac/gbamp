@@ -148,7 +148,7 @@ data_values:
 	.hword 0x1500
 	.hword 0xD200
 	.hword 0x1500
-	.hword 0x8000
+	.hword 0x8000  @ set rompage
 	.hword 0x1500
 
 	@SC	
